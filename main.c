@@ -49,7 +49,7 @@ int main(void) {
 	};
 
 	// Initialize I/O port
-	PORTB |= _BV(PLED)|_BV(PSW);	//0b00101;
+	PORTB = 0; PORTB |= _BV(PSW);	//0b00100;
 	//                                                                               (IIIOO)
 	DDRB  |= _BV(PLED)|_BV(PBZ);	// BP0=LED, PB1=BZ, PB2=SW, PB3=Bias, BP4=ADC  (0b00011)
 
@@ -63,8 +63,8 @@ int main(void) {
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
 	for (;;) {
-		// LED OFF, Disable bias circuit (0b00101)
-		PORTB = 0; PORTB = _BV(PLED)|_BV(PBZ);
+		// LED OFF, Disable bias circuit (0b00100)
+		PORTB = 0; PORTB = _BV(PBZ);
 		ADCSRA = 0;						// Stop ADC
 		while (bit_is_clear(PINB,PSW))	// Wait for button released
 			delay_ms(20);
@@ -73,7 +73,7 @@ int main(void) {
 		if (bit_is_set(PINB,PSW))		// When it is accidental wakeup, re-enter Power-Down mode
 			continue;
 		// LED ON, Enable bias circuit (0b01100)
-		PORTB &= ~_BV(PLED); PORTB |= _BV(PBIAS);
+		PORTB |= _BV(PLED); PORTB |= _BV(PBIAS);
 		ADMUX = _BV(REFS0)|0b10;		// ADC Ch=2, Vref=1.1V
 		sdt = 0;						// Initialize shutdown timer
 		while (bit_is_clear(PINB,PSW))	// Wait for button released
@@ -101,7 +101,7 @@ int main(void) {
 			}
 			if (lvd && ++lvd > 20) {		// Blink LED if needed
 				lvd = 1;
-				PINB = _BV(PLED);
+				PINB &= ~_BV(PLED);
 			}
 		} while (bit_is_set(PINB,PSW) && ++sdt < 30000);
 
